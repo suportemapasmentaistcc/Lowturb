@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StreamVault Analytics</title>
+  <style>
+    :root{
+      --bg:#eef3fb;--bg2:#f7faff;--surface:#ffffff;--surface2:#f6f9ff;--surface3:#edf3ff;--border:#d9e4f5;
+      --accent:#2f80ff;--accent2:#7c3aed;--text:#0f172a;--muted:#64748b;--danger:#ef4444;--success:#10b981;
+      --shadow:0 18px 50px rgba(15,23,42,.08);--shadow-soft:0 10px 30px rgba(47,128,255,.10);
+      --radius:18px;--font-mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      --font:Inter,Arial,Helvetica,sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      background:
+        radial-gradient(circle at top left, rgba(47,128,255,.08), transparent 28%),
+        radial-gradient(circle at top right, rgba(124,58,237,.07), transparent 22%),
+        linear-gradient(180deg,var(--bg2),var(--bg));
+      color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh
+    }
+    header{
+      background:rgba(255,255,255,.9);backdrop-filter:blur(18px);
+      border-bottom:1px solid rgba(217,228,245,.9);display:flex;align-items:center;gap:18px;
+      padding:14px 24px;min-height:82px;position:sticky;top:0;z-index:100;box-shadow:0 8px 24px rgba(15,23,42,.04)
+    }
+    .logo{
+      display:flex;align-items:center;justify-content:center;cursor:pointer;white-space:nowrap;
+      background:#fff;border:1px solid var(--border);border-radius:22px;padding:8px 18px;min-width:168px;
+      box-shadow:var(--shadow-soft)
+    }
+    .logo img{width:138px;height:52px;object-fit:contain;display:block;filter:drop-shadow(0 10px 18px rgba(255,0,51,.08))}
+    .logo-mark,.logo-text{display:none!important}
+    .dashboard-shell{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;margin-bottom:18px}
+    .dashboard-hero{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:0;padding:28px;
+      background:linear-gradient(135deg,#ffffff 0%,#f4f8ff 58%,#eef4ff 100%);
+      box-shadow:var(--shadow)
+    }
+    .dashboard-hero-left{display:block}
+    .dashboard-title{font-size:30px;font-weight:900;line-height:1.04;margin-bottom:10px;letter-spacing:-.03em}
+    .dashboard-sub{color:var(--muted);max-width:720px;line-height:1.7;font-size:14px}
+    .dashboard-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .dashboard-insight{
+      min-height:100%;display:flex;flex-direction:column;justify-content:space-between;
+      background:linear-gradient(160deg,#0f172a,#172554);color:#fff;box-shadow:var(--shadow)
+    }
+    .dashboard-insight .mini-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.68);margin-bottom:14px}
+    .dashboard-insight h3{font-size:22px;line-height:1.2;margin-bottom:10px}
+    .dashboard-insight p{color:rgba(255,255,255,.82);line-height:1.7}
+    .mini-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+    .mini-kpi{padding:14px;border-radius:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10)}
+    .mini-kpi .k-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.6);margin-bottom:6px;font-family:var(--font-mono)}
+    .mini-kpi .k-value{font-size:22px;font-weight:800}
+    .home-stats{margin-bottom:18px}
+    .recent-list{display:flex;flex-direction:column;gap:12px}
+    .recent-item{
+      display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--border);
+      border-radius:16px;background:linear-gradient(180deg,#fff,#f8fbff);box-shadow:var(--shadow-soft)
+    }
+    .recent-item-main{min-width:0}
+    .recent-item-title{font-weight:800;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .recent-item-meta{font-size:11px;color:var(--muted);font-family:var(--font-mono)}
+    .search-bar{
+      flex:1;max-width:540px;display:flex;align-items:center;background:#fff;border:1px solid var(--border);
+      border-radius:18px;overflow:hidden;box-shadow:var(--shadow-soft)
+    }
+    .search-bar input{flex:1;background:transparent;border:none;color:var(--text);font-family:var(--font);font-size:14px;padding:14px 16px;outline:none}
+    .search-bar button{background:linear-gradient(135deg,#2f80ff,#5fa4ff);border:none;color:#fff;cursor:pointer;padding:14px 18px;font-size:14px}
+    .header-actions{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap}
+    .btn{
+      display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:14px;font-size:12px;font-family:var(--font-mono);
+      font-weight:800;cursor:pointer;border:none;transition:all .18s;text-transform:uppercase;letter-spacing:.5px
+    }
+    .btn-ghost{background:#fff;border:1px solid var(--border);color:var(--muted);box-shadow:var(--shadow-soft)}
+    .btn-ghost:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+    .btn-primary{background:linear-gradient(135deg,#2f80ff,#5aa5ff);color:#fff;box-shadow:0 14px 26px rgba(47,128,255,.24)}
+    .btn-primary:hover{opacity:.95;transform:translateY(-1px)}
+    .btn-danger{background:linear-gradient(135deg,#ef4444,#f97316);color:#fff}
+    .btn-danger:hover{opacity:.92}
+    .btn-success{background:linear-gradient(135deg,#10b981,#14b8a6);color:#fff}
+    .btn-success:hover{opacity:.92}
+    .layout{display:flex;min-height:calc(100vh - 82px)}
+    aside{
+      width:242px;flex-shrink:0;background:rgba(255,255,255,.72);backdrop-filter:blur(14px);
+      border-right:1px solid var(--border);padding:24px 0
+    }
+    .nav-label{font-family:var(--font-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 20px;margin-bottom:10px}
+    .nav-section{margin-bottom:22px}
+    .nav-item{
+      display:flex;align-items:center;gap:10px;padding:12px 20px;margin:4px 10px;cursor:pointer;color:var(--muted);
+      font-size:14px;transition:all .15s;border:1px solid transparent;border-radius:14px
+    }
+    .nav-item:hover{color:var(--text);background:#fff;border-color:var(--border);box-shadow:var(--shadow-soft)}
+    .nav-item.active{color:var(--accent);border-color:rgba(47,128,255,.18);background:rgba(47,128,255,.08)}
+    main{flex:1;padding:28px;overflow-x:hidden}
+    .page{display:none}.page.active{display:block}
+    .notice{
+      background:linear-gradient(180deg,#eff6ff,#f8fbff);border:1px solid #cfe1ff;border-radius:18px;padding:16px 18px;color:#285ea8;
+      line-height:1.7;margin-bottom:18px;box-shadow:var(--shadow-soft)
+    }
+    .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap}
+    .section-title{font-family:var(--font-mono);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+    .grid-2{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .card{background:rgba(255,255,255,.95);border:1px solid var(--border);border-radius:22px;padding:20px;box-shadow:var(--shadow)}
+    .card h3{font-size:18px;margin-bottom:8px}
+    .muted{color:var(--muted)}
+    .mono{font-family:var(--font-mono)}
+    .stack{display:flex;flex-direction:column;gap:12px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .form-group{margin-bottom:14px}
+    .form-group label{display:block;font-size:11px;font-family:var(--font-mono);color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:.5px}
+    .form-group input,.form-group textarea,.form-group select{
+      width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font);
+      font-size:13px;padding:12px 12px;border-radius:14px;outline:none;transition:border .15s, box-shadow .15s
+    }
+    .form-group textarea{resize:vertical;min-height:90px}
+    .form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(47,128,255,.10)}
+    .video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+    .video-card{background:rgba(255,255,255,.97);border:1px solid var(--border);border-radius:22px;overflow:hidden;transition:all .2s;box-shadow:var(--shadow)}
+    .video-card:hover{border-color:#bdd4ff;transform:translateY(-3px);box-shadow:0 22px 40px rgba(47,128,255,.12)}
+    .thumb-wrap{position:relative;padding-bottom:56.25%;background:#dbe7fb}
+    .thumb-wrap video,.thumb-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    .thumb-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--muted)}
+    .dur-badge{position:absolute;bottom:10px;right:10px;background:rgba(15,23,42,.82);color:#fff;font-size:10px;font-family:var(--font-mono);padding:4px 7px;border-radius:999px}
+    .vis-badge{position:absolute;top:10px;right:10px;font-size:9px;font-family:var(--font-mono);padding:4px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.5px}
+    .vis-public{background:rgba(16,185,129,.14);color:#059669}
+    .vis-private{background:rgba(239,68,68,.14);color:#dc2626}
+    .vis-unlisted{background:rgba(124,58,237,.12);color:#6d28d9}
+    .card-info{padding:14px}
+    .card-title{font-size:14px;font-weight:800;line-height:1.4;margin-bottom:6px}
+    .card-meta{display:flex;gap:10px;color:var(--muted);font-size:11px;font-family:var(--font-mono);flex-wrap:wrap}
+    .card-actions{display:flex;gap:8px;padding:0 14px 14px;flex-wrap:wrap}
+    .card-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:11px;padding:8px 10px;border-radius:12px;cursor:pointer;font-family:var(--font-mono);font-weight:700}
+    .card-btn:hover{color:var(--accent);border-color:#bdd4ff;background:#fff}
+    .preview-wrap{position:relative;border-radius:24px;overflow:hidden;background:#000;box-shadow:0 24px 60px rgba(15,23,42,.22),0 0 0 1px rgba(255,255,255,.07)}
+    .preview-ratio{position:relative;padding-bottom:56.25%}
+    .preview-ratio video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+    .check-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .chk{display:flex;align-items:center;gap:8px;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:14px}
+    .embed-box{background:#f8fbff;border:1px solid var(--border);padding:12px;border-radius:16px;font-family:var(--font-mono);font-size:11px;line-height:1.6;color:#334155;white-space:pre-wrap;word-break:break-word}
+    .toast-ct{position:fixed;bottom:24px;right:24px;z-index:400;display:flex;flex-direction:column;gap:8px}
+    .toast{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px 16px;font-size:12px;font-family:var(--font-mono);display:flex;align-items:center;gap:8px;animation:tIn .2s ease;min-width:240px;box-shadow:var(--shadow)}
+    .toast.success{border-color:#9fe8cc}.toast.error{border-color:#fecaca}
+    .empty-state{text-align:center;padding:64px 24px;color:var(--muted)}
+    .empty-state .ei{font-size:48px;margin-bottom:16px}
+    .player-layout{display:grid;grid-template-columns:1fr 360px;gap:24px}
+    .video-player-wrap{background:#0f172a;border-radius:22px;overflow:hidden;box-shadow:var(--shadow)}
+    .video-player-wrap video{width:100%;display:block;max-height:72vh;background:#000}
+    .stat-card{background:linear-gradient(180deg,#fff,#f8fbff);border:1px solid var(--border);border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+    .sc-label{font-family:var(--font-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+    .sc-value{font-size:30px;font-weight:900;font-family:var(--font-mono);color:var(--accent)}
+    table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:22px;overflow:hidden;box-shadow:var(--shadow)}
+    th{background:#f8fbff;text-align:left;padding:12px 14px;font-family:var(--font-mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+    td{padding:12px 14px;font-size:12px;border-bottom:1px solid var(--border)}
+    tr:last-child td{border-bottom:none}
+    .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+    .filter-btn{padding:8px 14px;background:#fff;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:12px;cursor:pointer;box-shadow:var(--shadow-soft)}
+    .filter-btn.active,.filter-btn:hover{border-color:#bdd4ff;color:var(--accent);background:#f6f9ff}
+    .hidden{display:none!important}
+    .chart-wrap{width:100%;height:260px;background:#f8fbff;border:1px solid var(--border);border-radius:18px;padding:10px}
+    .chart-wrap canvas{width:100%;height:100%}
+    .home-chart-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:16px;margin-bottom:18px}
+    .home-chart-card{padding:22px}
+    .insight-list{display:flex;flex-direction:column;gap:10px}
+    .insight-item{padding:12px;border-radius:16px;background:var(--surface2);border:1px solid var(--border);line-height:1.6}
+    .pill-row{display:flex;gap:8px;flex-wrap:wrap}
+    .pill{padding:7px 12px;border:1px solid var(--border);border-radius:999px;background:#fff;font-size:11px;color:var(--muted);cursor:pointer}
+    .pill.active,.pill:hover{border-color:#bdd4ff;color:var(--accent);background:#f6f9ff}
+    .editor-form .check-grid{margin-top:8px}
+    .editor-file-note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6}
+    @keyframes tIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:1180px){.grid-3,.home-chart-grid,.dashboard-shell{grid-template-columns:1fr}}
+    @media(max-width:980px){.grid-2,.player-layout{grid-template-columns:1fr}.mini-kpi-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:780px){
+      header{padding:12px 14px;gap:12px;flex-wrap:wrap}
+      .logo{min-width:auto;width:100%;padding:10px 14px}
+      .logo img{width:160px;height:58px}
+      .header-actions,.search-bar{width:100%;max-width:none}
+      aside{display:none}
+      main{padding:18px}
+      .video-grid{grid-template-columns:1fr}
+      .check-grid,.mini-kpi-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo" onclick="navigate('home')"><img src="lowturb-logo.png" alt="LowTurb logo"></div>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Buscar vídeos..." oninput="handleSearch(this.value)">
+      <button type="button">🔍</button>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" onclick="navigate('config')">⚙ Config</button>
+      <button class="btn btn-ghost" onclick="navigate('analytics')">📈 Analytics</button>
+      <button class="btn btn-ghost" onclick="navigate('stats')">📊 Stats</button>
+      <button class="btn btn-primary" onclick="navigate('upload')">⬆ Upload</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside>
+      <div class="nav-section">
+        <div class="nav-label">Navegar</div>
+        <div class="nav-item active" id="nav-home" onclick="navigate('home')"><span>🏠</span> Início</div>
+        <div class="nav-item" id="nav-upload" onclick="navigate('upload')"><span>⬆</span> Upload</div>
+        <div class="nav-item" id="nav-config" onclick="navigate('config')"><span>⚙</span> Config</div>
+        <div class="nav-item" id="nav-analytics" onclick="navigate('analytics')"><span>📈</span> Analytics</div>
+        <div class="nav-item" id="nav-stats" onclick="navigate('stats')"><span>📊</span> Estatísticas</div>
+      </div>
+    </aside>
+
+    <main>
+      
+      <div class="page active" id="page-home">
+        <div class="dashboard-shell">
+          <div class="dashboard-hero card">
+            <div class="dashboard-hero-left">
+              <div class="dashboard-title">Dashboard LowTurb</div>
+              <div class="dashboard-sub">Painel inicial redesenhado em estilo mais premium, mais limpo e focado no que realmente importa: seus vídeos, crescimento, performance e acesso rápido ao que você precisa.</div>
+            </div>
+            <div class="dashboard-actions">
+              <button class="btn btn-primary" onclick="navigate('upload')">⬆ Novo upload</button>
+              <button class="btn btn-ghost" onclick="navigate('analytics')">📈 Ver analytics</button>
+              <button class="btn btn-ghost" onclick="navigate('config')">⚙ Ajustar config</button>
+            </div>
+          </div>
+
+          <div class="card dashboard-insight">
+            <div>
+              <div class="mini-label">Visão rápida</div>
+              <h3>Sistema pronto para subir, acompanhar e editar vídeos já salvos.</h3>
+              <p>Agora o painel também mostra gráficos gerais logo na entrada e um editor do vídeo salvo dentro da própria área do player.</p>
+            </div>
+            <div class="mini-kpi-grid">
+              <div class="mini-kpi">
+                <div class="k-label">Vídeos</div>
+                <div class="k-value" id="homeMiniVideos">0</div>
+              </div>
+              <div class="mini-kpi">
+                <div class="k-label">Views</div>
+                <div class="k-value" id="homeMiniViews">0</div>
+              </div>
+              <div class="mini-kpi">
+                <div class="k-label">Públicos</div>
+                <div class="k-value" id="homeMiniPublic">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-grid home-stats">
+          <div class="stat-card"><div class="sc-label">Total de vídeos</div><div class="sc-value" id="homeTotalVideos">0</div></div>
+          <div class="stat-card"><div class="sc-label">Visualizações totais</div><div class="sc-value" id="homeTotalViews">0</div></div>
+          <div class="stat-card"><div class="sc-label">Públicos</div><div class="sc-value" id="homePublicVideos">0</div></div>
+          <div class="stat-card"><div class="sc-label">Não listados</div><div class="sc-value" id="homeUnlistedVideos">0</div></div>
+        </div>
+
+        <div class="home-chart-grid">
+          <div class="card home-chart-card">
+            <div class="section-header">
+              <span class="section-title">Visão geral do acervo</span>
+              <span class="mono muted" id="videoCount"></span>
+            </div>
+            <div class="chart-wrap"><canvas id="homeViewsChart" width="800" height="260"></canvas></div>
+          </div>
+          <div class="card home-chart-card">
+            <div class="section-header">
+              <span class="section-title">Status do catálogo</span>
+            </div>
+            <div class="chart-wrap"><canvas id="homeVisibilityChart" width="480" height="260"></canvas></div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:18px">
+          <div class="card">
+            <h3>Uploads recentes</h3>
+            <div class="recent-list" id="recentUploadsList"></div>
+          </div>
+          <div class="card">
+            <h3>Performance por categoria</h3>
+            <div class="chart-wrap"><canvas id="homeCategoryChart" width="480" height="260"></canvas></div>
+          </div>
+        </div>
+
+        <div class="notice">
+          Esta versão agora traz um dashboard mais bonito, logo maior em fundo branco, gráficos na home e editor do vídeo salvo para alterar título, descrição, visibilidade, configurações do player e até substituir o arquivo do vídeo.
+        </div>
+
+        <div class="section-header">
+          <span class="section-title">Biblioteca de vídeos</span>
+        </div>
+
+        <div class="filters">
+          <button class="filter-btn active" onclick="setFilter(this,'all')">Todos</button>
+          <button class="filter-btn" onclick="setFilter(this,'public')">Públicos</button>
+          <button class="filter-btn" onclick="setFilter(this,'unlisted')">Não listados</button>
+          <button class="filter-btn" onclick="setFilter(this,'private')">Privados</button>
+          <button class="filter-btn" onclick="setSort('newest')">Mais novos</button>
+          <button class="filter-btn" onclick="setSort('views')">Mais vistos</button>
+        </div>
+
+        <div id="videoGrid" class="video-grid"></div>
+        <div class="empty-state hidden" id="emptyState">
+          <div class="ei">📭</div>
+          <h3>Nenhum vídeo encontrado</h3>
+          <p>Configure o Supabase e faça o primeiro upload.</p>
+        </div>
+      </div>
+
+      <div class="page" id="page-config">
+        <div class="grid-2">
+          <div class="card">
+            <h3>Configuração do projeto</h3>
+            <p class="muted" style="margin-bottom:16px">
+              Cole os dados do seu projeto Supabase. Eles ficam salvos no navegador para facilitar os testes.
+            </p>
+
+            <div class="form-group">
+              <label>Supabase URL</label>
+              <input id="cfgSupabaseUrl" type="text" placeholder="https://SEU-PROJETO.supabase.co">
+            </div>
+
+            <div class="form-group">
+              <label>Supabase Publishable Key</label>
+              <textarea id="cfgSupabaseKey" placeholder="Cole sua publishable key aqui"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Bucket público</label>
+              <input id="cfgBucket" type="text" placeholder="streamvault-videos">
+            </div>
+
+            <div class="form-group">
+              <label>URL pública do player</label>
+              <input id="cfgPlayerUrl" type="text" placeholder="https://seu-dominio.com/index.html">
+            </div>
+
+            <div class="row">
+              <button class="btn btn-success" onclick="saveConfig()">💾 Salvar config</button>
+              <button class="btn btn-primary" onclick="testConnection()">🧪 Testar conexão</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>O que precisa existir no Supabase</h3>
+            <div class="stack muted">
+              <p>1. Bucket público com o nome configurado acima.</p>
+              <p>2. Tabela <span class="mono">public.videos</span>.</p>
+              <p>3. Tabela <span class="mono">public.video_events</span> para guardar os eventos de retenção.</p>
+              <p>4. Policies liberando leitura pública e insert/update/delete para a sua publishable key.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="page-upload">
+        <div class="grid-2">
+          <div class="card">
+            <h3>Novo vídeo</h3>
+
+            <div class="form-group">
+              <label>Arquivo de vídeo</label>
+              <input id="videoFile" type="file" accept="video/*" onchange="handleLocalPreview(this.files[0])">
+            </div>
+
+            <div class="form-group">
+              <label>Título</label>
+              <input id="fTitle" type="text" placeholder="Nome do vídeo">
+            </div>
+
+            <div class="form-group">
+              <label>Descrição</label>
+              <textarea id="fDesc" placeholder="Descrição opcional"></textarea>
+            </div>
+
+            <div class="row">
+              <div class="form-group" style="flex:1;min-width:220px">
+                <label>Categoria</label>
+                <select id="fCategory">
+                  <option value="">Selecionar...</option>
+                  <option>Educação</option>
+                  <option>Entretenimento</option>
+                  <option>Tecnologia</option>
+                  <option>Música</option>
+                  <option>Esportes</option>
+                  <option>Marketing</option>
+                  <option>VSL</option>
+                  <option>Outros</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="flex:1;min-width:220px">
+                <label>Visibilidade</label>
+                <select id="fVisibility">
+                  <option value="public">Público</option>
+                  <option value="unlisted">Não listado</option>
+                  <option value="private">Privado</option>
+                </select>
+              </div>
+            </div>
+
+            <h3 style="margin:10px 0 12px">Config do player</h3>
+            <div class="check-grid">
+              <label class="chk"><input id="sShowTitle" type="checkbox" checked> Mostrar título</label>
+              <label class="chk"><input id="sShowControls" type="checkbox" checked> Mostrar controles</label>
+              <label class="chk"><input id="sShowProgress" type="checkbox" checked> Mostrar barra</label>
+              <label class="chk"><input id="sLoop" type="checkbox" checked> Repetir vídeo</label>
+              <label class="chk"><input id="sShowCover" type="checkbox" checked> Mostrar capa</label>
+              <label class="chk"><input id="sAutoplay" type="checkbox"> Autoplay</label>
+            </div>
+
+            <div class="row" style="margin-top:16px">
+              <div class="form-group" style="flex:1;min-width:220px">
+                <label>Proporção</label>
+                <select id="sAspect" onchange="applyPreviewSettings()">
+                  <option value="16/9">16:9</option>
+                  <option value="9/16">9:16</option>
+                  <option value="1/1">1:1</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="flex:1;min-width:220px">
+                <label>Tamanho do botão play</label>
+                <input id="sPlaySize" type="range" min="40" max="96" value="56" oninput="applyPreviewSettings()">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="form-group" style="flex:1;min-width:220px">
+                <label>Cor do play</label>
+                <input id="sPlayColor" type="color" value="#ffffff" oninput="applyPreviewSettings()">
+              </div>
+
+              <div class="form-group" style="flex:1;min-width:220px">
+                <label>Cor da barra</label>
+                <input id="sProgressColor" type="color" value="#3b9eff" oninput="applyPreviewSettings()">
+              </div>
+            </div>
+
+            <div class="row">
+              <button class="btn btn-success" onclick="uploadVideo()">🚀 Enviar vídeo</button>
+              <button class="btn btn-ghost" onclick="resetUploadForm()">Limpar</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Prévia</h3>
+            <div class="preview-wrap">
+              <div class="preview-ratio" id="previewRatio" style="padding-bottom:56.25%">
+                <video id="previewPlayer" controls preload="metadata"></video>
+              </div>
+            </div>
+            <p class="muted" style="margin-top:12px">
+              A prévia usa o arquivo local escolhido. Depois do upload, o vídeo passa a usar a URL real do Supabase.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="page-player">
+        <button class="btn btn-ghost" onclick="navigate('home')" style="margin-bottom:16px">← Voltar</button>
+
+        <div class="player-layout">
+          <div>
+            <div class="video-player-wrap">
+              <video id="mainPlayer" controls preload="metadata" playsinline></video>
+            </div>
+
+            <div class="card" style="margin-top:16px">
+              <h3 id="playerTitle">—</h3>
+              <p id="playerMeta" class="muted" style="margin:6px 0 14px"></p>
+              <p id="playerDesc" class="muted" style="line-height:1.7;white-space:pre-wrap"></p>
+
+              <div class="row" style="margin-top:16px">
+                <button class="btn btn-primary" onclick="manualPlayCurrent()">▶ Dar play</button>
+                <button class="btn btn-ghost" onclick="reloadCurrentPlayer()">↺ Recarregar player</button>
+                <button class="btn btn-primary" onclick="copyCurrentEmbed()">⧉ Copiar embed.js</button>
+                <button class="btn btn-ghost" onclick="copyCurrentIframe()">⧉ Copiar iframe</button>
+                <button class="btn btn-ghost" onclick="scrollToVideoEditor()">✎ Editar vídeo</button>
+                <button class="btn btn-danger" onclick="deleteCurrentVideo()">🗑 Excluir</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="stat-card">
+              <div class="sc-label">Visualizações</div>
+              <div class="sc-value" id="pViews">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">Status do player</div>
+              <div class="embed-box" id="playerDebugBox">Aguardando abertura do vídeo...</div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">Embed.js</div>
+              <div class="embed-box" id="embedBoxJs"></div>
+            </div>
+            <div class="stat-card">
+              <div class="sc-label">Iframe</div>
+              <div class="embed-box" id="embedBoxIframe"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card editor-form" id="videoEditorCard" style="margin-top:20px">
+          <div class="section-header">
+            <span class="section-title">Editor do vídeo salvo</span>
+            <span class="mono muted">Altere mesmo depois do upload</span>
+          </div>
+
+          <div class="grid-2">
+            <div>
+              <div class="form-group">
+                <label>Título</label>
+                <input id="editTitle" type="text" placeholder="Título do vídeo">
+              </div>
+
+              <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="editDesc" placeholder="Descrição do vídeo"></textarea>
+              </div>
+
+              <div class="row">
+                <div class="form-group" style="flex:1;min-width:220px">
+                  <label>Categoria</label>
+                  <select id="editCategory">
+                    <option value="">Selecionar...</option>
+                    <option>Educação</option>
+                    <option>Entretenimento</option>
+                    <option>Tecnologia</option>
+                    <option>Música</option>
+                    <option>Esportes</option>
+                    <option>Marketing</option>
+                    <option>VSL</option>
+                    <option>Outros</option>
+                  </select>
+                </div>
+
+                <div class="form-group" style="flex:1;min-width:220px">
+                  <label>Visibilidade</label>
+                  <select id="editVisibility">
+                    <option value="public">Público</option>
+                    <option value="unlisted">Não listado</option>
+                    <option value="private">Privado</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Substituir arquivo de vídeo</label>
+                <input id="editVideoFile" type="file" accept="video/*">
+                <div class="editor-file-note">Opcional. Se você selecionar outro arquivo e salvar, o sistema troca o vídeo já enviado pelo novo arquivo.</div>
+              </div>
+            </div>
+
+            <div>
+              <div class="row">
+                <div class="form-group" style="flex:1;min-width:220px">
+                  <label>Proporção</label>
+                  <select id="editAspect">
+                    <option value="16/9">16:9</option>
+                    <option value="9/16">9:16</option>
+                    <option value="1/1">1:1</option>
+                  </select>
+                </div>
+
+                <div class="form-group" style="flex:1;min-width:220px">
+                  <label>Tamanho do botão play</label>
+                  <input id="editPlaySize" type="range" min="40" max="96" value="56">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="form-group" style="flex:1;min-width:220px">
+                  <label>Cor do play</label>
+                  <input id="editPlayColor" type="color" value="#ffffff">
+                </div>
+
+                <div class="form-group" style="flex:1;min-width:220px">
+                  <label>Cor da barra</label>
+                  <input id="editProgressColor" type="color" value="#3b9eff">
+                </div>
+              </div>
+
+              <div class="check-grid">
+                <label class="chk"><input id="editShowTitle" type="checkbox" checked> Mostrar título</label>
+                <label class="chk"><input id="editShowControls" type="checkbox" checked> Mostrar controles</label>
+                <label class="chk"><input id="editShowProgress" type="checkbox" checked> Mostrar barra</label>
+                <label class="chk"><input id="editLoop" type="checkbox"> Repetir vídeo</label>
+                <label class="chk"><input id="editShowCover" type="checkbox" checked> Mostrar capa</label>
+                <label class="chk"><input id="editAutoplay" type="checkbox"> Autoplay</label>
+              </div>
+
+              <div class="row" style="margin-top:16px">
+                <button class="btn btn-success" onclick="saveCurrentVideoEdits()">💾 Salvar alterações</button>
+                <button class="btn btn-ghost" onclick="fillVideoEditor(currentVideo)">↺ Recarregar dados</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="page-analytics">
+        <div class="section-header">
+          <span class="section-title">Analytics avançado por vídeo</span>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:16px">
+          <div class="card">
+            <div class="form-group">
+              <label>Vídeo</label>
+              <select id="analyticsVideoSelect"></select>
+            </div>
+          </div>
+          <div class="card">
+            <label class="form-group">
+              <span class="mono muted" style="display:block;margin-bottom:8px">Período</span>
+              <div class="pill-row">
+                <button class="pill active" data-range="today" onclick="setAnalyticsRange(this,'today')">Hoje</button>
+                <button class="pill" data-range="yesterday" onclick="setAnalyticsRange(this,'yesterday')">Ontem</button>
+                <button class="pill" data-range="7d" onclick="setAnalyticsRange(this,'7d')">7d</button>
+                <button class="pill" data-range="14d" onclick="setAnalyticsRange(this,'14d')">14d</button>
+                <button class="pill" data-range="30d" onclick="setAnalyticsRange(this,'30d')">30d</button>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card"><div class="sc-label">Sessões</div><div class="sc-value" id="aSessions">0</div></div>
+          <div class="stat-card"><div class="sc-label">Play starts</div><div class="sc-value" id="aStarts">0</div></div>
+          <div class="stat-card"><div class="sc-label">Tempo médio</div><div class="sc-value" id="aAvgWatch">0s</div></div>
+          <div class="stat-card"><div class="sc-label">Maior abandono</div><div class="sc-value" id="aDropMoment">—</div></div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <h3>Curva de retenção segundo a segundo</h3>
+            <div class="chart-wrap"><canvas id="retentionChart" width="800" height="260"></canvas></div>
+          </div>
+          <div class="card">
+            <h3>Abandono por momento do vídeo</h3>
+            <div class="chart-wrap"><canvas id="dropChart" width="800" height="260"></canvas></div>
+          </div>
+          <div class="card">
+            <h3>Insights para otimizar conteúdo</h3>
+            <div class="insight-list" id="insightList"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="page-stats">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="sc-label">Total de vídeos</div><div class="sc-value" id="sTotal">0</div></div>
+          <div class="stat-card"><div class="sc-label">Visualizações</div><div class="sc-value" id="sViews">0</div></div>
+          <div class="stat-card"><div class="sc-label">Públicos</div><div class="sc-value" id="sPublic">0</div></div>
+          <div class="stat-card"><div class="sc-label">Privados</div><div class="sc-value" id="sPrivate">0</div></div>
+          <div class="stat-card"><div class="sc-label">Não listados</div><div class="sc-value" id="sUnlisted">0</div></div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Vídeo</th>
+              <th>Categoria</th>
+              <th>Views</th>
+              <th>Visibilidade</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody id="statsTable"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast-ct" id="toastCt"></div>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    const qs = new URLSearchParams(location.search);
+    const embedMode = qs.get("embed") === "1";
+    const videoIdFromQuery = qs.get("v");
+    const watchMode = qs.get("watch") === "1";
+
+    const STORAGE_KEY = "streamvault_config_v1";
+    const DEFAULT_CONFIG = {
+      supabaseUrl: "",
+      supabaseKey: "",
+      bucket: "streamvault-videos",
+      playerUrl: location.origin + location.pathname
+    };
+
+    let config = loadConfig();
+    let supabase = null;
+    let videos = [];
+    let currentVideo = null;
+    let currentFilter = "all";
+    let currentSort = "newest";
+    let searchQ = "";
+    let analyticsRange = "7d";
+    let analyticsEvents = [];
+
+    const pages = [...document.querySelectorAll(".page")];
+    const navItems = [...document.querySelectorAll(".nav-item")];
+    const toastCt = document.getElementById("toastCt");
+
+    if (embedMode) {
+      renderStandaloneEmbed(videoIdFromQuery);
+    } else if (watchMode) {
+      renderStandaloneWatch(videoIdFromQuery);
+    } else {
+      initAdmin();
+    }
+
+    function initAdmin() {
+      fillConfigForm();
+      initClient();
+      bindMainPlayerDebug();
+      document.getElementById("analyticsVideoSelect").addEventListener("change", loadAnalyticsForCurrentSelection);
+      renderGrid();
+      renderStats();
+    }
+
+    function loadConfig() {
+      try {
+        return { ...DEFAULT_CONFIG, ...(JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")) };
+      } catch {
+        return { ...DEFAULT_CONFIG };
+      }
+    }
+
+    function saveConfig() {
+      config.supabaseUrl = document.getElementById("cfgSupabaseUrl").value.trim().replace(/\/+$/,"");
+      config.supabaseKey = document.getElementById("cfgSupabaseKey").value.trim();
+      config.bucket = document.getElementById("cfgBucket").value.trim() || "streamvault-videos";
+      config.playerUrl = document.getElementById("cfgPlayerUrl").value.trim() || (location.origin + location.pathname);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+      initClient();
+      toast("Config salva.", "success");
+    }
+    window.saveConfig = saveConfig;
+
+    function fillConfigForm() {
+      document.getElementById("cfgSupabaseUrl").value = config.supabaseUrl || "";
+      document.getElementById("cfgSupabaseKey").value = config.supabaseKey || "";
+      document.getElementById("cfgBucket").value = config.bucket || "streamvault-videos";
+      document.getElementById("cfgPlayerUrl").value = config.playerUrl || (location.origin + location.pathname);
+    }
+
+    function initClient() {
+      if (!config.supabaseUrl || !config.supabaseKey) return;
+      supabase = createClient(config.supabaseUrl, config.supabaseKey);
+      fetchVideos();
+    }
+
+    async function testConnection() {
+      try {
+        ensureClient();
+        const { error } = await supabase.from("videos").select("id").limit(1);
+        if (error) throw error;
+        toast("Conexão OK com Supabase.", "success");
+      } catch (err) {
+        toast("Falha na conexão: " + normalizeError(err), "error");
+      }
+    }
+    window.testConnection = testConnection;
+
+    function ensureClient() {
+      if (!supabase) throw new Error("Configure o Supabase primeiro.");
+    }
+
+    async function fetchVideos() {
+      if (!supabase) return;
+      try {
+        const { data, error } = await supabase.from("videos").select("*");
+        if (error) throw error;
+        videos = (data || []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        renderGrid();
+        renderStats();
+        renderAnalyticsVideoSelect();
+      } catch (err) {
+        toast("Erro ao buscar vídeos: " + normalizeError(err), "error");
+      }
+    }
+
+    function navigate(page) {
+      pages.forEach(p => p.classList.remove("active"));
+      navItems.forEach(n => n.classList.remove("active"));
+      const pageEl = document.getElementById("page-" + page);
+      if (pageEl) pageEl.classList.add("active");
+      const nav = document.getElementById("nav-" + page);
+      if (nav) nav.classList.add("active");
+
+      if (page === "home") renderGrid();
+      if (page === "stats") renderStats();
+      if (page === "analytics") {
+        renderAnalyticsVideoSelect();
+        loadAnalyticsForCurrentSelection();
+      }
+    }
+    window.navigate = navigate;
+
+    function handleSearch(v) {
+      searchQ = (v || "").toLowerCase();
+      renderGrid();
+    }
+    window.handleSearch = handleSearch;
+
+    function setFilter(btn, val) {
+      currentFilter = val;
+      [...document.querySelectorAll(".filter-btn")].forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderGrid();
+    }
+    window.setFilter = setFilter;
+
+    function setSort(val) {
+      currentSort = val;
+      renderGrid();
+    }
+    window.setSort = setSort;
+
+    function renderHomeDashboard() {
+      const total = videos.length;
+      const totalViews = videos.reduce((acc, v) => acc + (v.views || 0), 0);
+      const totalPublic = videos.filter(v => v.visibility === "public").length;
+      const totalUnlisted = videos.filter(v => v.visibility === "unlisted").length;
+
+      const recentWrap = document.getElementById("recentUploadsList");
+      const totalEl = document.getElementById("homeTotalVideos");
+      const viewsEl = document.getElementById("homeTotalViews");
+      const publicEl = document.getElementById("homePublicVideos");
+      const unlEl = document.getElementById("homeUnlistedVideos");
+      const miniVideos = document.getElementById("homeMiniVideos");
+      const miniViews = document.getElementById("homeMiniViews");
+      const miniPublic = document.getElementById("homeMiniPublic");
+
+      if (totalEl) totalEl.textContent = String(total);
+      if (viewsEl) viewsEl.textContent = String(totalViews);
+      if (publicEl) publicEl.textContent = String(totalPublic);
+      if (unlEl) unlEl.textContent = String(totalUnlisted);
+      if (miniVideos) miniVideos.textContent = String(total);
+      if (miniViews) miniViews.textContent = String(totalViews);
+      if (miniPublic) miniPublic.textContent = String(totalPublic);
+
+      if (recentWrap) {
+        const recent = [...videos].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
+        recentWrap.innerHTML = recent.length ? recent.map(v => `
+          <div class="recent-item">
+            <div class="recent-item-main">
+              <div class="recent-item-title">${escapeHtml(v.title || "Sem título")}</div>
+              <div class="recent-item-meta">${escapeHtml(v.category || "Sem categoria")} • ${escapeHtml(v.visibility || "public")} • ${formatDate(v.created_at)}</div>
+            </div>
+            <button class="card-btn" onclick="openPlayer('${v.id}')">Abrir</button>
+          </div>
+        `).join("") : `<div class="muted">Ainda não há uploads recentes.</div>`;
+      }
+
+      renderHomeCharts();
+    }
+
+    function renderHomeCharts() {
+      const sortedByDate = [...videos].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      drawLineChart(document.getElementById("homeViewsChart"), sortedByDate.map((v, i) => ({
+        second: i + 1,
+        value: Number(v.views || 0)
+      })), "");
+
+      const visibilityMap = [
+        { second: 1, value: videos.filter(v => v.visibility === "public").length },
+        { second: 2, value: videos.filter(v => v.visibility === "unlisted").length },
+        { second: 3, value: videos.filter(v => v.visibility === "private").length }
+      ];
+      drawBarChart(document.getElementById("homeVisibilityChart"), visibilityMap, "");
+
+      const categoryTotals = {};
+      videos.forEach(v => {
+        const key = v.category || "Sem categoria";
+        categoryTotals[key] = (categoryTotals[key] || 0) + Number(v.views || 0);
+      });
+      const categoryPoints = Object.entries(categoryTotals).slice(0, 6).map(([, value], i) => ({
+        second: i + 1,
+        value: Number(value || 0)
+      }));
+      drawBarChart(document.getElementById("homeCategoryChart"), categoryPoints, "");
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById("videoGrid");
+      const empty = document.getElementById("emptyState");
+      const count = document.getElementById("videoCount");
+      if (!grid) return;
+
+      renderHomeDashboard();
+      let list = [...videos];
+      if (currentFilter !== "all") list = list.filter(v => v.visibility === currentFilter);
+      if (searchQ) {
+        list = list.filter(v =>
+          (v.title || "").toLowerCase().includes(searchQ) ||
+          (v.description || "").toLowerCase().includes(searchQ)
+        );
+      }
+      if (currentSort === "views") list.sort((a, b) => (b.views || 0) - (a.views || 0));
+      else list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      count.textContent = `${list.length} vídeo${list.length !== 1 ? "s" : ""}`;
+
+      if (!list.length) {
+        grid.innerHTML = "";
+        empty.classList.remove("hidden");
+        return;
+      }
+      empty.classList.add("hidden");
+
+      grid.innerHTML = list.map(v => {
+        const thumb = v.poster_url
+          ? `<img src="${escapeHtml(v.poster_url)}" alt="">`
+          : v.file_url
+            ? `<video src="${escapeHtml(v.file_url)}" muted preload="metadata"></video>`
+            : `<div class="thumb-placeholder">🎬</div>`;
+        const visClass = `vis-${v.visibility || "public"}`;
+        return `
+          <div class="video-card">
+            <div class="thumb-wrap">
+              ${thumb}
+              ${v.duration ? `<span class="dur-badge">${formatDuration(v.duration)}</span>` : ""}
+              <span class="vis-badge ${visClass}">${escapeHtml(v.visibility || "public")}</span>
+            </div>
+            <div class="card-info" onclick="openPlayer('${v.id}')">
+              <div class="card-title">${escapeHtml(v.title || "Sem título")}</div>
+              <div class="card-meta">
+                <span>👁 ${v.views || 0}</span>
+                <span>${escapeHtml(v.category || "Sem categoria")}</span>
+                <span>${formatDate(v.created_at)}</span>
+              </div>
+            </div>
+            <div class="card-actions">
+              <button class="card-btn" onclick="openPlayer('${v.id}')">Abrir</button>
+              <button class="card-btn" onclick="copyEmbedById('${v.id}')">Copiar embed</button>
+              <button class="card-btn" onclick="openAnalyticsById('${v.id}')">Analytics</button>
+              <button class="card-btn" onclick="editVideoById('${v.id}')">Editar</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function handleLocalPreview(file) {
+      if (!file) return;
+      document.getElementById("fTitle").value = file.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " ");
+      const player = document.getElementById("previewPlayer");
+      if (player.dataset.objectUrl) {
+        URL.revokeObjectURL(player.dataset.objectUrl);
+        player.dataset.objectUrl = "";
+      }
+      const objectUrl = URL.createObjectURL(file);
+      player.dataset.objectUrl = objectUrl;
+      player.pause();
+      player.removeAttribute("src");
+      player.load();
+      player.src = objectUrl;
+      player.load();
+      applyPreviewSettings();
+    }
+    window.handleLocalPreview = handleLocalPreview;
+
+    function applyPreviewSettings() {
+      const ratio = document.getElementById("sAspect").value;
+      const ratioMap = { "16/9": "56.25%", "9/16": "177.77%", "1/1": "100%" };
+      document.getElementById("previewRatio").style.paddingBottom = ratioMap[ratio] || "56.25%";
+      const player = document.getElementById("previewPlayer");
+      if (document.getElementById("sShowControls").checked) player.setAttribute("controls", "");
+      else player.removeAttribute("controls");
+      player.loop = document.getElementById("sLoop").checked;
+    }
+    window.applyPreviewSettings = applyPreviewSettings;
+
+    async function uploadVideo() {
+      try {
+        ensureClient();
+        const file = document.getElementById("videoFile").files[0];
+        if (!file) throw new Error("Selecione um arquivo de vídeo.");
+        const title = document.getElementById("fTitle").value.trim();
+        if (!title) throw new Error("Insira um título.");
+
+        const id = "v" + Date.now();
+        const ext = (file.name.split(".").pop() || "mp4").toLowerCase();
+        const safeName = `video.${ext}`;
+        const filePath = `${id}/${safeName}`;
+        const settings = collectSettings();
+
+        const { error: uploadError } = await supabase
+          .storage
+          .from(config.bucket)
+          .upload(filePath, file, { cacheControl: "3600", upsert: false });
+        if (uploadError) throw uploadError;
+
+        const { data: publicData } = supabase.storage.from(config.bucket).getPublicUrl(filePath);
+        const fileUrl = publicData.publicUrl;
+        const duration = await getVideoDuration(file);
+
+        const row = {
+          id,
+          title,
+          description: document.getElementById("fDesc").value.trim(),
+          category: document.getElementById("fCategory").value,
+          visibility: document.getElementById("fVisibility").value,
+          file_path: filePath,
+          file_url: fileUrl,
+          poster_url: null,
+          duration,
+          views: 0,
+          settings
+        };
+
+        const { error: insertError } = await supabase.from("videos").insert(row);
+        if (insertError) throw insertError;
+
+        toast("Vídeo enviado com sucesso.", "success");
+        resetUploadForm();
+        await fetchVideos();
+        navigate("home");
+      } catch (err) {
+        toast("Upload falhou: " + normalizeError(err), "error");
+      }
+    }
+    window.uploadVideo = uploadVideo;
+
+    function resetUploadForm() {
+      document.getElementById("videoFile").value = "";
+      document.getElementById("fTitle").value = "";
+      document.getElementById("fDesc").value = "";
+      document.getElementById("fCategory").value = "";
+      document.getElementById("fVisibility").value = "public";
+      const preview = document.getElementById("previewPlayer");
+      preview.pause();
+      if (preview.dataset.objectUrl) {
+        URL.revokeObjectURL(preview.dataset.objectUrl);
+        preview.dataset.objectUrl = "";
+      }
+      preview.removeAttribute("src");
+      preview.load();
+    }
+    window.resetUploadForm = resetUploadForm;
+
+    function collectSettings() {
+      return {
+        aspect: document.getElementById("sAspect").value,
+        showTitle: document.getElementById("sShowTitle").checked,
+        showControls: document.getElementById("sShowControls").checked,
+        showProgress: document.getElementById("sShowProgress").checked,
+        loop: document.getElementById("sLoop").checked,
+        showCover: document.getElementById("sShowCover").checked,
+        autoplay: document.getElementById("sAutoplay").checked,
+        playSize: Number(document.getElementById("sPlaySize").value),
+        playColor: document.getElementById("sPlayColor").value,
+        progressColor: document.getElementById("sProgressColor").value
+      };
+    }
+
+    async function openPlayer(id) {
+      const v = videos.find(x => x.id === id);
+      if (!v) return;
+
+      currentVideo = v;
+      document.getElementById("playerTitle").textContent = v.title || "Sem título";
+      document.getElementById("playerMeta").textContent = `${v.category || "Sem categoria"} • ${v.visibility || "public"} • ${formatDate(v.created_at)}`;
+      document.getElementById("playerDesc").textContent = v.description || "";
+      document.getElementById("pViews").textContent = String(v.views || 0);
+
+      const player = document.getElementById("mainPlayer");
+      updatePlayerDebug("Preparando player...");
+
+      try { player.pause(); } catch {}
+      player.removeAttribute("src");
+      player.poster = "";
+      player.load();
+
+      player.loop = !!(v.settings && v.settings.loop);
+      player.playsInline = true;
+      player.muted = false;
+      player.preload = "metadata";
+      player.crossOrigin = "anonymous";
+
+      if (v.settings?.showControls !== false) player.setAttribute("controls", "");
+      else player.removeAttribute("controls");
+
+      player.src = v.file_url || "";
+      player.poster = v.poster_url || "";
+      player.load();
+
+      document.getElementById("embedBoxJs").textContent = buildScriptEmbed(v.id);
+      document.getElementById("embedBoxIframe").textContent = buildIframeEmbed(v.id);
+      fillVideoEditor(v);
+
+      navigate("player");
+      updatePlayerDebug(`src carregado:\n${player.currentSrc || player.src || "(vazio)"}`);
+
+      player.addEventListener("loadedmetadata", () => {
+        updatePlayerDebug(`Vídeo pronto.\ncurrentSrc: ${player.currentSrc || player.src}\nreadyState: ${player.readyState}\nduration: ${player.duration || 0}`);
+      }, { once: true });
+
+      player.addEventListener("error", () => {
+        const mediaError = player.error ? `\nmedia error code: ${player.error.code}` : "";
+        updatePlayerDebug(`Erro ao carregar vídeo.\nsrc: ${player.currentSrc || player.src}${mediaError}`);
+      }, { once: true });
+    }
+    window.openPlayer = openPlayer;
+
+    function openAnalyticsById(id) {
+      const sel = document.getElementById("analyticsVideoSelect");
+      sel.value = id;
+      navigate("analytics");
+      loadAnalyticsForCurrentSelection();
+    }
+    window.openAnalyticsById = openAnalyticsById;
+
+    async function manualPlayCurrent() {
+      const player = document.getElementById("mainPlayer");
+      try {
+        updatePlayerDebug("Tentando dar play manual...");
+        await player.play();
+        updatePlayerDebug(`Play iniciado com sucesso.\ncurrentTime: ${player.currentTime}\nreadyState: ${player.readyState}`);
+      } catch (err) {
+        updatePlayerDebug(`Falha no play manual:\n${normalizeError(err)}`);
+        toast("Falha ao dar play: " + normalizeError(err), "error");
+      }
+    }
+    window.manualPlayCurrent = manualPlayCurrent;
+
+    function reloadCurrentPlayer() {
+      if (!currentVideo) return;
+      openPlayer(currentVideo.id);
+    }
+    window.reloadCurrentPlayer = reloadCurrentPlayer;
+
+    async function deleteCurrentVideo() {
+      if (!currentVideo) return;
+      if (!confirm(`Excluir "${currentVideo.title}"?`)) return;
+
+      try {
+        ensureClient();
+        if (currentVideo.file_path) {
+          await supabase.storage.from(config.bucket).remove([currentVideo.file_path]);
+        }
+        const { error } = await supabase.from("videos").delete().eq("id", currentVideo.id);
+        if (error) throw error;
+        toast("Vídeo excluído.", "success");
+        currentVideo = null;
+        await fetchVideos();
+        navigate("home");
+      } catch (err) {
+        toast("Erro ao excluir: " + normalizeError(err), "error");
+      }
+    }
+    window.deleteCurrentVideo = deleteCurrentVideo;
+
+    function fillVideoEditor(video) {
+      if (!video) return;
+      const s = video.settings || {};
+      document.getElementById("editTitle").value = video.title || "";
+      document.getElementById("editDesc").value = video.description || "";
+      document.getElementById("editCategory").value = video.category || "";
+      document.getElementById("editVisibility").value = video.visibility || "public";
+      document.getElementById("editAspect").value = s.aspect || "16/9";
+      document.getElementById("editPlaySize").value = Number(s.playSize || 56);
+      document.getElementById("editPlayColor").value = s.playColor || "#ffffff";
+      document.getElementById("editProgressColor").value = s.progressColor || "#3b9eff";
+      document.getElementById("editShowTitle").checked = s.showTitle !== false;
+      document.getElementById("editShowControls").checked = s.showControls !== false;
+      document.getElementById("editShowProgress").checked = s.showProgress !== false;
+      document.getElementById("editLoop").checked = !!s.loop;
+      document.getElementById("editShowCover").checked = s.showCover !== false;
+      document.getElementById("editAutoplay").checked = !!s.autoplay;
+      document.getElementById("editVideoFile").value = "";
+    }
+    window.fillVideoEditor = fillVideoEditor;
+
+    function collectEditorSettings() {
+      return {
+        aspect: document.getElementById("editAspect").value,
+        showTitle: document.getElementById("editShowTitle").checked,
+        showControls: document.getElementById("editShowControls").checked,
+        showProgress: document.getElementById("editShowProgress").checked,
+        loop: document.getElementById("editLoop").checked,
+        showCover: document.getElementById("editShowCover").checked,
+        autoplay: document.getElementById("editAutoplay").checked,
+        playSize: Number(document.getElementById("editPlaySize").value),
+        playColor: document.getElementById("editPlayColor").value,
+        progressColor: document.getElementById("editProgressColor").value
+      };
+    }
+
+    async function saveCurrentVideoEdits() {
+      if (!currentVideo) return;
+      try {
+        ensureClient();
+        const replacementFile = document.getElementById("editVideoFile").files[0];
+        const patch = {
+          title: document.getElementById("editTitle").value.trim() || "Sem título",
+          description: document.getElementById("editDesc").value.trim(),
+          category: document.getElementById("editCategory").value,
+          visibility: document.getElementById("editVisibility").value,
+          settings: collectEditorSettings()
+        };
+
+        if (replacementFile) {
+          const ext = (replacementFile.name.split(".").pop() || "mp4").toLowerCase();
+          const safeName = `video-editado.${ext}`;
+          const newPath = `${currentVideo.id}/${safeName}`;
+          const { error: uploadError } = await supabase.storage.from(config.bucket).upload(newPath, replacementFile, { cacheControl: "3600", upsert: true });
+          if (uploadError) throw uploadError;
+          const { data: publicData } = supabase.storage.from(config.bucket).getPublicUrl(newPath);
+          patch.file_path = newPath;
+          patch.file_url = publicData.publicUrl;
+          patch.duration = await getVideoDuration(replacementFile);
+        }
+
+        const { error } = await supabase.from("videos").update(patch).eq("id", currentVideo.id);
+        if (error) throw error;
+
+        toast("Vídeo atualizado com sucesso.", "success");
+        await fetchVideos();
+        const refreshed = videos.find(v => v.id === currentVideo.id);
+        if (refreshed) openPlayer(refreshed.id);
+      } catch (err) {
+        toast("Erro ao salvar alterações: " + normalizeError(err), "error");
+      }
+    }
+    window.saveCurrentVideoEdits = saveCurrentVideoEdits;
+
+    function scrollToVideoEditor() {
+      const el = document.getElementById("videoEditorCard");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    window.scrollToVideoEditor = scrollToVideoEditor;
+
+    function editVideoById(id) {
+      openPlayer(id);
+      setTimeout(() => scrollToVideoEditor(), 120);
+    }
+    window.editVideoById = editVideoById;
+
+    function buildScriptEmbed(videoId) {
+      return `<script>\nwindow.STREAMVAULT_CONFIG = {\n  supabaseUrl: "${config.supabaseUrl}",\n  supabaseKey: "${config.supabaseKey}"\n};\n<\/script>\n<script src="${config.playerUrl.replace(/index\.html$/,'') + 'embed.js'}"><\/script>\n<sv-player videoid="${videoId}"><\/sv-player>`;
+    }
+
+    function buildIframeEmbed(videoId) {
+      return `<iframe src="${config.playerUrl}?embed=1&v=${videoId}" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="border:none;border-radius:16px;width:100%;aspect-ratio:16/9;"></iframe>`;
+    }
+
+    async function copyEmbedById(id) {
+      try {
+        await navigator.clipboard.writeText(buildScriptEmbed(id));
+        toast("Embed copiado.", "success");
+      } catch {
+        toast("Não foi possível copiar.", "error");
+      }
+    }
+    window.copyEmbedById = copyEmbedById;
+
+    async function copyCurrentEmbed() {
+      if (!currentVideo) return;
+      await copyText(buildScriptEmbed(currentVideo.id), "Embed.js copiado.");
+    }
+    window.copyCurrentEmbed = copyCurrentEmbed;
+
+    async function copyCurrentIframe() {
+      if (!currentVideo) return;
+      await copyText(buildIframeEmbed(currentVideo.id), "Iframe copiado.");
+    }
+    window.copyCurrentIframe = copyCurrentIframe;
+
+    async function copyText(text, okMsg) {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast(okMsg, "success");
+      } catch {
+        toast("Não foi possível copiar.", "error");
+      }
+    }
+
+    function renderStats() {
+      document.getElementById("sTotal").textContent = String(videos.length);
+      document.getElementById("sViews").textContent = String(videos.reduce((a, b) => a + (b.views || 0), 0));
+      document.getElementById("sPublic").textContent = String(videos.filter(v => v.visibility === "public").length);
+      document.getElementById("sPrivate").textContent = String(videos.filter(v => v.visibility === "private").length);
+      document.getElementById("sUnlisted").textContent = String(videos.filter(v => v.visibility === "unlisted").length);
+
+      const tbody = document.getElementById("statsTable");
+      tbody.innerHTML = videos.map(v => `
+        <tr>
+          <td>${escapeHtml(v.title || "Sem título")}</td>
+          <td>${escapeHtml(v.category || "—")}</td>
+          <td>${v.views || 0}</td>
+          <td>${escapeHtml(v.visibility || "public")}</td>
+          <td>${formatDate(v.created_at)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function renderAnalyticsVideoSelect() {
+      const sel = document.getElementById("analyticsVideoSelect");
+      if (!sel) return;
+      sel.innerHTML = videos.map(v => `<option value="${v.id}">${escapeHtml(v.title || "Sem título")}</option>`).join("");
+    }
+
+    function setAnalyticsRange(btn, range) {
+      analyticsRange = range;
+      [...document.querySelectorAll('.pill')].forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      loadAnalyticsForCurrentSelection();
+    }
+    window.setAnalyticsRange = setAnalyticsRange;
+
+    async function loadAnalyticsForCurrentSelection() {
+      const sel = document.getElementById("analyticsVideoSelect");
+      const videoId = sel && sel.value;
+      if (!videoId || !supabase) return;
+
+      const range = getDateRange(analyticsRange);
+
+      try {
+        const { data, error } = await supabase
+          .from("video_events")
+          .select("*")
+          .eq("video_id", videoId)
+          .gte("created_at", range.start.toISOString())
+          .lte("created_at", range.end.toISOString())
+          .order("created_at", { ascending: true });
+
+        if (error) throw error;
+        analyticsEvents = data || [];
+
+        const video = videos.find(v => v.id === videoId);
+        renderAnalytics(video, analyticsEvents);
+      } catch (err) {
+        toast("Erro ao carregar analytics: " + normalizeError(err), "error");
+      }
+    }
+
+    function renderAnalytics(video, events) {
+      const sessions = [...new Set(events.map(e => e.session_id).filter(Boolean))];
+      const starts = events.filter(e => e.event_type === "play").length;
+
+      const perSessionMax = {};
+      events.forEach(e => {
+        const sid = e.session_id || "anon";
+        const sec = Number(e.time_sec || 0);
+        perSessionMax[sid] = Math.max(perSessionMax[sid] || 0, sec);
+      });
+      const avgWatch = sessions.length ? (Object.values(perSessionMax).reduce((a,b) => a+b, 0) / sessions.length) : 0;
+
+      const duration = Math.max(1, Math.ceil(Number(video?.duration || 0)));
+      const retentionPoints = buildRetention(events, sessions, duration);
+      const dropPoints = buildDropoffs(events, sessions, duration);
+      const topDrop = getTopDrop(dropPoints);
+      const insights = buildInsights(video, sessions.length, avgWatch, retentionPoints, dropPoints);
+
+      document.getElementById("aSessions").textContent = String(sessions.length);
+      document.getElementById("aStarts").textContent = String(starts);
+      document.getElementById("aAvgWatch").textContent = `${Math.round(avgWatch)}s`;
+      document.getElementById("aDropMoment").textContent = topDrop ? `${topDrop.second}s` : "—";
+
+      drawLineChart(document.getElementById("retentionChart"), retentionPoints, "%");
+      drawBarChart(document.getElementById("dropChart"), dropPoints, "");
+      renderInsightList(insights);
+    }
+
+    function buildRetention(events, sessions, duration) {
+      const sessionMax = {};
+      events.forEach(e => {
+        const sid = e.session_id || "anon";
+        sessionMax[sid] = Math.max(sessionMax[sid] || 0, Number(e.time_sec || 0));
+      });
+
+      const totalSessions = Math.max(1, sessions.length);
+      const points = [];
+      for (let sec = 0; sec <= duration; sec++) {
+        let count = 0;
+        for (const sid of sessions) {
+          if ((sessionMax[sid] || 0) >= sec) count++;
+        }
+        points.push({ second: sec, value: Math.round((count / totalSessions) * 100) });
+      }
+      return points;
+    }
+
+    function buildDropoffs(events, sessions, duration) {
+      const abandons = events.filter(e => e.event_type === "abandon");
+      const bucket = Array.from({ length: duration + 1 }, (_, sec) => ({ second: sec, value: 0 }));
+      abandons.forEach(e => {
+        const sec = Math.min(duration, Math.max(0, Math.round(Number(e.time_sec || 0))));
+        if (bucket[sec]) bucket[sec].value += 1;
+      });
+      return bucket;
+    }
+
+    function getTopDrop(points) {
+      let best = null;
+      for (const p of points) {
+        if (!best || p.value > best.value) best = p;
+      }
+      return best && best.value > 0 ? best : null;
+    }
+
+    function buildInsights(video, sessionCount, avgWatch, retentionPoints, dropPoints) {
+      const insights = [];
+      const duration = Math.max(1, Number(video?.duration || 0));
+      const pctAvg = Math.round((avgWatch / duration) * 100);
+      const topDrop = getTopDrop(dropPoints);
+      const first10 = retentionPoints.find(p => p.second === Math.min(10, retentionPoints.length - 1));
+      const first30 = retentionPoints.find(p => p.second === Math.min(30, retentionPoints.length - 1));
+
+      insights.push(`Tempo médio assistido: ${Math.round(avgWatch)}s (${pctAvg}% do vídeo).`);
+
+      if (first10 && first10.value < 70) {
+        insights.push(`A retenção cai rápido nos primeiros 10s (${first10.value}%). Teste abrir com uma promessa mais forte ou prova visual logo no início.`);
+      } else {
+        insights.push(`Os primeiros 10s estão relativamente fortes (${first10 ? first10.value : 0}%). Isso sugere um bom gancho inicial.`);
+      }
+
+      if (first30 && first30.value < 50) {
+        insights.push(`Aos 30s a retenção está em ${first30.value}%. Vale enxugar introduções longas e antecipar o ponto principal.`);
+      }
+
+      if (topDrop) {
+        insights.push(`Maior abandono por volta de ${topDrop.second}s. Revise esse trecho: pode haver queda de ritmo, excesso de contexto ou CTA fora de hora.`);
+      } else {
+        insights.push(`Não houve abandono concentrado em um segundo específico no período selecionado.`);
+      }
+
+      if (sessionCount < 10) {
+        insights.push(`A amostra ainda está pequena (${sessionCount} sessões). Use esses dados como direção inicial, não como verdade final.`);
+      } else {
+        insights.push(`A amostra já permite decisões mais confiáveis (${sessionCount} sessões). Compare cortes diferentes com o mesmo período.`);
+      }
+
+      return insights.slice(0, 5);
+    }
+
+    function renderInsightList(items) {
+      const wrap = document.getElementById("insightList");
+      wrap.innerHTML = items.map(t => `<div class="insight-item">${escapeHtml(t)}</div>`).join("");
+    }
+
+    function drawLineChart(canvas, points, suffix) {
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#0e1117";
+      ctx.fillRect(0, 0, w, h);
+
+      const pad = { l: 40, r: 10, t: 10, b: 24 };
+      const cw = w - pad.l - pad.r;
+      const ch = h - pad.t - pad.b;
+
+      ctx.strokeStyle = "rgba(255,255,255,.08)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = pad.t + (ch / 4) * i;
+        ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
+      }
+
+      const maxX = Math.max(1, points.length - 1);
+      ctx.strokeStyle = "#3b9eff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      points.forEach((p, i) => {
+        const x = pad.l + (i / maxX) * cw;
+        const y = pad.t + ch - (Math.max(0, Math.min(100, p.value)) / 100) * ch;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      ctx.fillStyle = "#7a8aaa";
+      ctx.font = "11px Arial";
+      ctx.fillText("100%", 6, pad.t + 4);
+      ctx.fillText("0%", 14, pad.t + ch);
+      ctx.fillText(`${points.length ? points[points.length - 1].second : 0}s`, w - 35, h - 6);
+      ctx.fillText(`0s`, pad.l, h - 6);
+    }
+
+    function drawBarChart(canvas, points) {
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#0e1117";
+      ctx.fillRect(0, 0, w, h);
+
+      const pad = { l: 30, r: 10, t: 10, b: 24 };
+      const cw = w - pad.l - pad.r;
+      const ch = h - pad.t - pad.b;
+      const maxVal = Math.max(1, ...points.map(p => p.value));
+
+      const visible = points.filter((_, idx) => idx % Math.max(1, Math.ceil(points.length / 60)) === 0);
+      const barW = Math.max(2, cw / Math.max(1, visible.length));
+
+      visible.forEach((p, i) => {
+        const x = pad.l + i * barW;
+        const barH = (p.value / maxVal) * ch;
+        ctx.fillStyle = "#e8ff47";
+        ctx.fillRect(x, pad.t + ch - barH, Math.max(1, barW - 1), barH);
+      });
+
+      ctx.fillStyle = "#7a8aaa";
+      ctx.font = "11px Arial";
+      ctx.fillText(`0s`, pad.l, h - 6);
+      ctx.fillText(`${points.length ? points[points.length - 1].second : 0}s`, w - 35, h - 6);
+    }
+
+    function getDateRange(range) {
+      const now = new Date();
+      const start = new Date(now);
+      const end = new Date(now);
+
+      if (range === "today") {
+        start.setHours(0,0,0,0);
+        end.setHours(23,59,59,999);
+      } else if (range === "yesterday") {
+        start.setDate(start.getDate() - 1);
+        start.setHours(0,0,0,0);
+        end.setDate(end.getDate() - 1);
+        end.setHours(23,59,59,999);
+      } else {
+        const days = Number(range.replace("d","")) || 7;
+        start.setDate(start.getDate() - days);
+      }
+      return { start, end };
+    }
+
+    async function renderStandaloneEmbed(videoId) {
+      document.body.innerHTML = `
+        <div style="margin:0;background:#000;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:0">
+          <div id="embedWrap" style="width:100%;max-width:100vw"></div>
+        </div>
+      `;
+      try {
+        config = loadConfig();
+        if (!config.supabaseUrl || !config.supabaseKey) throw new Error("Config do Supabase não encontrada.");
+        const client = createClient(config.supabaseUrl, config.supabaseKey);
+        const { data, error } = await client.from("videos").select("*").eq("id", videoId).maybeSingle();
+        if (error) throw error;
+        if (!data) throw new Error("Vídeo não encontrado.");
+
+        const s = data.settings || {};
+        const aspectMap = { "16/9":"56.25%", "9/16":"177.77%", "1/1":"100%" };
+        const pad = aspectMap[s.aspect || "16/9"] || "56.25%";
+
+        document.getElementById("embedWrap").innerHTML = `
+          <div style="position:relative;width:100%;padding-bottom:${pad};background:#000;overflow:hidden">
+            <video id="embedVideo" src="${escapeHtml(data.file_url || '')}" ${s.showControls !== false ? "controls" : ""} ${s.autoplay ? "autoplay muted playsinline" : ""} ${s.loop ? "loop" : ""} playsinline poster="${escapeHtml(data.poster_url || '')}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000"></video>
+            ${s.showCover !== false ? `
+            <div id="embedCover" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(0,0,0,.46);cursor:pointer">
+              <div style="width:${s.playSize || 56}px;height:${s.playSize || 56}px;border-radius:50%;border:2px solid ${s.playColor || "#fff"};display:flex;align-items:center;justify-content:center;color:${s.playColor || "#fff"};font-size:22px">▶</div>
+              ${s.showTitle !== false ? `<div style="color:#fff;font-family:Arial,sans-serif;font-size:14px;font-weight:700;padding:0 20px;text-align:center">${escapeHtml(data.title || "")}</div>` : ""}
+            </div>` : ""}
+          </div>
+        `;
+
+        const video = document.getElementById("embedVideo");
+        const cover = document.getElementById("embedCover");
+
+        const tracker = createTracker(client, data.id, Number(data.duration || 0));
+
+        if (cover) {
+          cover.addEventListener("click", async () => {
+            cover.style.display = "none";
+            try { await video.play(); } catch(e) {}
+          }, { once:true });
+        }
+
+        bindTracking(video, tracker);
+      } catch (err) {
+        document.body.innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#000;color:#fff;font-family:Arial,sans-serif;padding:24px;text-align:center">Erro no embed: ${escapeHtml(normalizeError(err))}</div>`;
+      }
+    }
+
+    async function renderStandaloneWatch(videoId) {
+      await renderStandaloneEmbed(videoId);
+    }
+
+    function createTracker(client, videoId, duration) {
+      const sessionId = `s_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      let lastSecondSent = -1;
+      let started = false;
+      let ended = false;
+
+      async function send(eventType, timeSec, extra = {}) {
+        try {
+          await client.from("video_events").insert({
+            video_id: videoId,
+            session_id: sessionId,
+            event_type: eventType,
+            time_sec: Math.max(0, Math.round(timeSec || 0)),
+            duration_sec: Math.round(duration || 0),
+            meta: extra
+          });
+        } catch (_) {}
+      }
+
+      return {
+        sessionId,
+        onPlay(currentTime) {
+          if (!started) {
+            started = true;
+            send("play", currentTime);
+          } else {
+            send("resume", currentTime);
+          }
+        },
+        onPause(currentTime) {
+          send("pause", currentTime);
+        },
+        onProgress(currentTime) {
+          const sec = Math.round(currentTime || 0);
+          if (sec !== lastSecondSent) {
+            lastSecondSent = sec;
+            send("progress", sec);
+          }
+        },
+        onEnded(currentTime) {
+          ended = true;
+          send("ended", currentTime);
+        },
+        onAbandon(currentTime) {
+          if (!ended) send("abandon", currentTime);
+        }
+      };
+    }
+
+    function bindTracking(video, tracker) {
+      video.addEventListener("play", () => tracker.onPlay(video.currentTime));
+      video.addEventListener("pause", () => tracker.onPause(video.currentTime));
+      video.addEventListener("timeupdate", () => tracker.onProgress(video.currentTime));
+      video.addEventListener("ended", () => tracker.onEnded(video.currentTime));
+      window.addEventListener("beforeunload", () => tracker.onAbandon(video.currentTime));
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") tracker.onAbandon(video.currentTime);
+      });
+    }
+
+    async function getVideoDuration(file) {
+      return new Promise((resolve) => {
+        const url = URL.createObjectURL(file);
+        const v = document.createElement("video");
+        v.preload = "metadata";
+        v.onloadedmetadata = function() {
+          URL.revokeObjectURL(url);
+          resolve(v.duration || null);
+        };
+        v.onerror = function() {
+          URL.revokeObjectURL(url);
+          resolve(null);
+        };
+        v.src = url;
+      });
+    }
+
+    function bindMainPlayerDebug() {
+      const player = document.getElementById("mainPlayer");
+      if (!player) return;
+
+      const events = ["loadstart", "loadedmetadata", "loadeddata", "canplay", "canplaythrough", "play", "playing", "pause", "waiting", "stalled", "suspend", "ended", "error"];
+      events.forEach(evt => {
+        player.addEventListener(evt, () => {
+          const err = player.error ? ` | mediaError:${player.error.code}` : "";
+          updatePlayerDebug(`evento: ${evt}\ncurrentSrc: ${player.currentSrc || player.src || "(vazio)"}\nreadyState: ${player.readyState}\nnetworkState: ${player.networkState}${err}`);
+        });
+      });
+    }
+
+    function updatePlayerDebug(text) {
+      const box = document.getElementById("playerDebugBox");
+      if (box) box.textContent = text;
+    }
+
+    function toast(msg, type = "") {
+      const el = document.createElement("div");
+      el.className = `toast ${type}`.trim();
+      el.textContent = msg;
+      toastCt.appendChild(el);
+      setTimeout(() => el.remove(), 3200);
+    }
+
+    function normalizeError(err) {
+      return err?.message || String(err);
+    }
+
+    function formatDuration(seconds) {
+      if (!seconds) return "0:00";
+      const s = Math.floor(seconds % 60).toString().padStart(2, "0");
+      const m = Math.floor((seconds / 60) % 60);
+      const h = Math.floor(seconds / 3600);
+      return h ? `${h}:${String(m).padStart(2,"0")}:${s}` : `${m}:${s}`;
+    }
+
+    function formatDate(date) {
+      if (!date) return "—";
+      try {
+        return new Date(date).toLocaleDateString("pt-BR");
+      } catch {
+        return "—";
+      }
+    }
+
+    function escapeHtml(v) {
+      return String(v ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+</body>
+</html>
